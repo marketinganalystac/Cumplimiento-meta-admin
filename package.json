@@ -9,7 +9,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "chart.js": "^4.5.1"
+    "chart.js": "^4.5.1",
+    "@tailwindcss/vite": "^4.1.14",
+    "vite": "^7.3.2",
+    "@vitejs/plugin-react": "^5.0.4",
+    "tailwindcss": "^4.1.14"
   },
   "devDependencies": {
     "@hookform/resolvers": "^3.10.0",
