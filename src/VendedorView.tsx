@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import { VEND_B64 } from './iframeData';
+import { saveReportState, loadReportState } from './lib/supabase';
 
 interface VendedorViewProps {
   onGoConsole: () => void;
@@ -20,21 +21,37 @@ export default function VendedorView({ onGoConsole, csvText, csvName, active }: 
   }, [active, loaded]);
 
   useEffect(() => {
-    function onMessage(e: MessageEvent) {
+    async function onMessage(e: MessageEvent) {
       if (!e.data) return;
       if (e.data.type === 'goConsole') { onGoConsole(); return; }
+
       if (e.data.type === 'iframeReady' && e.data.from === 'vendedores') {
-        if (csvText && frameRef.current?.contentWindow) {
-          frameRef.current.contentWindow.postMessage(
-            { type: 'csvData', text: csvText, name: csvName }, '*'
-          );
+        const win = frameRef.current?.contentWindow;
+        if (!win) return;
+
+        // 1. Restaurar estado manual
+        const state = await loadReportState('vendedor');
+        if (state) {
+          win.postMessage({ type: 'restoreState', state }, '*');
         }
+
+        // 2. Enviar CSV si hay uno cargado
+        if (csvText) {
+          win.postMessage({ type: 'csvData', text: csvText, name: csvName }, '*');
+        }
+        return;
+      }
+
+      // El iframe pide guardar estado
+      if (e.data.type === 'saveState' && e.data.report === 'vendedor') {
+        await saveReportState('vendedor', e.data.state);
       }
     }
     window.addEventListener('message', onMessage);
     return () => window.removeEventListener('message', onMessage);
   }, [csvText, csvName, onGoConsole]);
 
+  // Cuando el CSV cambia mientras el iframe ya está cargado
   useEffect(() => {
     if (csvText && loaded && frameRef.current?.contentWindow) {
       frameRef.current.contentWindow.postMessage(

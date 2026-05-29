@@ -8,11 +8,12 @@ interface ConsoleViewProps {
   portalCSVText: string | null;
   portalCSVName: string | null;
   onCSVLoad: (text: string, name: string) => void;
+  csvLoading?: boolean;
 }
 
 export default function ConsoleView({
   onOpenTaller, onOpenSucursal, onOpenVendedor, onOpenPending,
-  portalCSVText, portalCSVName, onCSVLoad
+  portalCSVText, portalCSVName, onCSVLoad, csvLoading
 }: ConsoleViewProps) {
   const csvInputRef = useRef<HTMLInputElement>(null);
   const [csvLoaded, setCsvLoaded] = useState(false);
@@ -27,6 +28,14 @@ export default function ConsoleView({
     setDateChip(formatted);
     setPeriod(formatted);
   }, []);
+
+  // Reflejar cuando el CSV se restauró desde Supabase
+  useEffect(() => {
+    if (portalCSVName && !csvLoading) {
+      setCsvLoaded(true);
+      setCsvLabel(portalCSVName);
+    }
+  }, [portalCSVName, csvLoading]);
 
   function handleCSV(input: HTMLInputElement) {
     const file = input.files?.[0];
@@ -65,10 +74,11 @@ export default function ConsoleView({
             className="csv-chip"
             onClick={() => csvInputRef.current?.click()}
             title="Cargar Data General (CSV)"
+            disabled={csvLoading}
           >
             <span className={`csv-dot${csvLoaded ? ' ok' : ''}`}></span>
             <i className="fas fa-upload"></i>
-            <span>{csvLabel}</span>
+            <span>{csvLoading ? 'Cargando...' : csvLabel}</span>
           </button>
           <input
             type="file"
@@ -206,7 +216,7 @@ export default function ConsoleView({
           <div style={{ fontSize: '18px' }}>📊</div>
           <div>
             <div className="ac-footer-label">Fuente de datos</div>
-            <div className="ac-footer-val">CSV upload</div>
+            <div className="ac-footer-val">{csvLoaded ? '✓ CSV cargado' : 'CSV upload'}</div>
           </div>
         </div>
       </div>

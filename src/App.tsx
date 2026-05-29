@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ConsoleView from './ConsoleView';
 import TallerView from './TallerView';
 import PendingView from './PendingView';
 import SucursalView from './SucursalView';
 import VendedorView from './VendedorView';
+import { saveCSV, loadCSV } from './lib/supabase';
 
 type ViewName = 'console' | 'taller' | 'pending' | 'sucursal' | 'vendedor';
 
@@ -12,6 +13,17 @@ export default function App() {
   const [pendingInfo, setPendingInfo] = useState({ nombre: '', num: 0 });
   const [portalCSVText, setPortalCSVText] = useState<string | null>(null);
   const [portalCSVName, setPortalCSVName] = useState<string | null>(null);
+  const [csvLoading, setCsvLoading] = useState(true);
+
+  // ── Al iniciar: restaurar CSV desde Supabase ──────────────────
+  useEffect(() => {
+    loadCSV().then(saved => {
+      if (saved?.text && saved?.name) {
+        setPortalCSVText(saved.text);
+        setPortalCSVName(saved.name);
+      }
+    }).finally(() => setCsvLoading(false));
+  }, []);
 
   function goConsole() {
     setView('console');
@@ -39,9 +51,11 @@ export default function App() {
     window.scrollTo(0, 0);
   }
 
-  function handleCSVLoad(text: string, name: string) {
+  async function handleCSVLoad(text: string, name: string) {
     setPortalCSVText(text);
     setPortalCSVName(name);
+    // Persistir en Supabase
+    await saveCSV(text, name);
   }
 
   return (
@@ -55,6 +69,7 @@ export default function App() {
           portalCSVText={portalCSVText}
           portalCSVName={portalCSVName}
           onCSVLoad={handleCSVLoad}
+          csvLoading={csvLoading}
         />
       </div>
       <div style={{ display: view === 'taller' ? 'block' : 'none' }}>

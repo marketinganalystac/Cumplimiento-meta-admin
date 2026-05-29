@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import { TALLER_B64 } from './iframeData';
+import { saveReportState, loadReportState } from './lib/supabase';
 
 interface TallerViewProps {
   onGoConsole: () => void;
@@ -18,10 +19,29 @@ export default function TallerView({ onGoConsole, active }: TallerViewProps) {
   }, [active, loaded]);
 
   useEffect(() => {
-    function onMessage(e: MessageEvent) {
+    async function onMessage(e: MessageEvent) {
       if (!e.data) return;
+
+      // Ir al portal
       if (e.data.type === 'goConsole') {
         onGoConsole();
+        return;
+      }
+
+      // El iframe está listo → enviar estado guardado
+      if (e.data.type === 'iframeReady' && e.data.from === 'taller') {
+        const state = await loadReportState('taller');
+        if (state && frameRef.current?.contentWindow) {
+          frameRef.current.contentWindow.postMessage(
+            { type: 'restoreState', state }, '*'
+          );
+        }
+        return;
+      }
+
+      // El iframe pide guardar su estado
+      if (e.data.type === 'saveState' && e.data.report === 'taller') {
+        await saveReportState('taller', e.data.state);
       }
     }
     window.addEventListener('message', onMessage);
