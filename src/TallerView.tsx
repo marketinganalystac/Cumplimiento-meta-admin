@@ -21,25 +21,16 @@ export default function TallerView({ onGoConsole, active }: TallerViewProps) {
   useEffect(() => {
     async function onMessage(e: MessageEvent) {
       if (!e.data) return;
+      if (e.data.type === 'goConsole') { onGoConsole(); return; }
 
-      // Ir al portal
-      if (e.data.type === 'goConsole') {
-        onGoConsole();
-        return;
-      }
-
-      // El iframe está listo → enviar estado guardado
       if (e.data.type === 'iframeReady' && e.data.from === 'taller') {
         const state = await loadReportState('taller');
         if (state && frameRef.current?.contentWindow) {
-          frameRef.current.contentWindow.postMessage(
-            { type: 'restoreState', state }, '*'
-          );
+          frameRef.current.contentWindow.postMessage({ type: 'restoreState', state }, '*');
         }
         return;
       }
 
-      // El iframe pide guardar su estado
       if (e.data.type === 'saveState' && e.data.report === 'taller') {
         await saveReportState('taller', e.data.state);
       }
