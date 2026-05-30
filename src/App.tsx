@@ -11,40 +11,36 @@ type ViewName = 'console' | 'taller' | 'pending' | 'sucursal' | 'vendedor';
 export default function App() {
   const [view, setView] = useState<ViewName>('console');
   const [pendingInfo, setPendingInfo] = useState({ nombre: '', num: 0 });
+
+  // CSV general (Sucursal + Vendedor)
   const [portalCSVText, setPortalCSVText] = useState<string | null>(null);
   const [portalCSVName, setPortalCSVName] = useState<string | null>(null);
   const [csvLoading, setCsvLoading] = useState(true);
 
-  // ── Al iniciar: restaurar CSV desde Supabase ──────────────────
+  // CSV Taller
+  const [tallerCSVText, setTallerCSVText] = useState<string | null>(null);
+  const [tallerCSVName, setTallerCSVName] = useState<string | null>(null);
+  const [tallerCsvLoading, setTallerCsvLoading] = useState(true);
+
+  // Restaurar ambos CSV desde Supabase al iniciar
   useEffect(() => {
-    loadCSV().then(saved => {
-      if (saved?.text && saved?.name) {
-        setPortalCSVText(saved.text);
-        setPortalCSVName(saved.name);
-      }
-    }).finally(() => setCsvLoading(false));
+    Promise.all([
+      loadCSV('portal_csv').then(saved => {
+        if (saved?.text) { setPortalCSVText(saved.text); setPortalCSVName(saved.name); }
+      }),
+      loadCSV('taller_csv').then(saved => {
+        if (saved?.text) { setTallerCSVText(saved.text); setTallerCSVName(saved.name); }
+      }),
+    ]).finally(() => {
+      setCsvLoading(false);
+      setTallerCsvLoading(false);
+    });
   }, []);
 
-  function goConsole() {
-    setView('console');
-    window.scrollTo(0, 0);
-  }
-
-  function openTaller() {
-    setView('taller');
-    window.scrollTo(0, 0);
-  }
-
-  function openSucursal() {
-    setView('sucursal');
-    window.scrollTo(0, 0);
-  }
-
-  function openVendedor() {
-    setView('vendedor');
-    window.scrollTo(0, 0);
-  }
-
+  function goConsole() { setView('console'); window.scrollTo(0, 0); }
+  function openTaller() { setView('taller'); window.scrollTo(0, 0); }
+  function openSucursal() { setView('sucursal'); window.scrollTo(0, 0); }
+  function openVendedor() { setView('vendedor'); window.scrollTo(0, 0); }
   function openPending(nombre: string, num: number) {
     setPendingInfo({ nombre, num });
     setView('pending');
@@ -54,8 +50,13 @@ export default function App() {
   async function handleCSVLoad(text: string, name: string) {
     setPortalCSVText(text);
     setPortalCSVName(name);
-    // Persistir en Supabase
-    await saveCSV(text, name);
+    await saveCSV('portal_csv', text, name);
+  }
+
+  async function handleTallerCSVLoad(text: string, name: string) {
+    setTallerCSVText(text);
+    setTallerCSVName(name);
+    await saveCSV('taller_csv', text, name);
   }
 
   return (
@@ -70,16 +71,21 @@ export default function App() {
           portalCSVName={portalCSVName}
           onCSVLoad={handleCSVLoad}
           csvLoading={csvLoading}
+          tallerCSVName={tallerCSVName}
+          onTallerCSVLoad={handleTallerCSVLoad}
+          tallerCsvLoading={tallerCsvLoading}
         />
       </div>
       <div style={{ display: view === 'taller' ? 'block' : 'none' }}>
-        <TallerView onGoConsole={goConsole} active={view === 'taller'} />
+        <TallerView
+          onGoConsole={goConsole}
+          active={view === 'taller'}
+          csvText={tallerCSVText}
+          csvName={tallerCSVName}
+        />
       </div>
       <div style={{ display: view === 'pending' ? 'block' : 'none' }}>
-        <PendingView
-          onGoConsole={goConsole}
-          nombre={pendingInfo.nombre}
-        />
+        <PendingView onGoConsole={goConsole} nombre={pendingInfo.nombre} />
       </div>
       <div style={{ display: view === 'sucursal' ? 'block' : 'none' }}>
         <SucursalView

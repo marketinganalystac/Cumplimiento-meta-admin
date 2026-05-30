@@ -5,29 +5,20 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// ── Constantes compartidas ──────────────────────────────────────
-export const REPORT_IDS = {
-  taller: 'taller',
-  sucursal: 'sucursal',
-  vendedor: 'vendedor',
-} as const;
-
-// ── Helpers de persistencia ─────────────────────────────────────
-
-/** Guarda o actualiza el CSV en Supabase */
-export async function saveCSV(csvText: string, csvName: string) {
+/** Guarda o actualiza un CSV en Supabase por id */
+export async function saveCSV(id: string, csvText: string, csvName: string) {
   const { error } = await supabase
     .from('csv_data')
-    .upsert({ id: 'portal_csv', text: csvText, name: csvName, updated_at: new Date().toISOString() });
+    .upsert({ id, text: csvText, name: csvName, updated_at: new Date().toISOString() });
   if (error) console.error('[supabase] saveCSV:', error.message);
 }
 
-/** Lee el CSV guardado en Supabase */
-export async function loadCSV(): Promise<{ text: string; name: string } | null> {
+/** Lee un CSV guardado en Supabase por id */
+export async function loadCSV(id: string): Promise<{ text: string; name: string } | null> {
   const { data, error } = await supabase
     .from('csv_data')
     .select('text, name')
-    .eq('id', 'portal_csv')
+    .eq('id', id)
     .single();
   if (error) { console.warn('[supabase] loadCSV:', error.message); return null; }
   return data as { text: string; name: string };

@@ -5,9 +5,11 @@ import { saveReportState, loadReportState } from './lib/supabase';
 interface TallerViewProps {
   onGoConsole: () => void;
   active: boolean;
+  csvText?: string | null;
+  csvName?: string | null;
 }
 
-export default function TallerView({ onGoConsole, active }: TallerViewProps) {
+export default function TallerView({ onGoConsole, active, csvText, csvName }: TallerViewProps) {
   const frameRef = useRef<HTMLIFrameElement>(null);
   const [loaded, setLoaded] = useState(false);
 
@@ -24,10 +26,12 @@ export default function TallerView({ onGoConsole, active }: TallerViewProps) {
       if (e.data.type === 'goConsole') { onGoConsole(); return; }
 
       if (e.data.type === 'iframeReady' && e.data.from === 'taller') {
+        const win = frameRef.current?.contentWindow;
+        if (!win) return;
         const state = await loadReportState('taller');
-        if (state && frameRef.current?.contentWindow) {
-          frameRef.current.contentWindow.postMessage({ type: 'restoreState', state }, '*');
-        }
+        if (state) win.postMessage({ type: 'restoreState', state }, '*');
+        // Si hay CSV guardado y el state no tiene dataLoaded, enviarlo
+        if (csvText) win.postMessage({ type: 'csvData', text: csvText, name: csvName }, '*');
         return;
       }
 
@@ -37,7 +41,16 @@ export default function TallerView({ onGoConsole, active }: TallerViewProps) {
     }
     window.addEventListener('message', onMessage);
     return () => window.removeEventListener('message', onMessage);
-  }, [onGoConsole]);
+  }, [onGoConsole, csvText, csvName]);
+
+  // Si el CSV llega después de que el iframe ya cargó
+  useEffect(() => {
+    if (csvText && loaded && frameRef.current?.contentWindow) {
+      frameRef.current.contentWindow.postMessage(
+        { type: 'csvData', text: csvText, name: csvName }, '*'
+      );
+    }
+  }, [csvText, csvName, loaded]);
 
   return (
     <div className="suc-frame-wrap">

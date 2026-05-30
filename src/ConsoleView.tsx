@@ -9,15 +9,22 @@ interface ConsoleViewProps {
   portalCSVName: string | null;
   onCSVLoad: (text: string, name: string) => void;
   csvLoading?: boolean;
+  tallerCSVName: string | null;
+  onTallerCSVLoad: (text: string, name: string) => void;
+  tallerCsvLoading?: boolean;
 }
 
 export default function ConsoleView({
   onOpenTaller, onOpenSucursal, onOpenVendedor, onOpenPending,
-  portalCSVText, portalCSVName, onCSVLoad, csvLoading
+  portalCSVText, portalCSVName, onCSVLoad, csvLoading,
+  tallerCSVName, onTallerCSVLoad, tallerCsvLoading,
 }: ConsoleViewProps) {
   const csvInputRef = useRef<HTMLInputElement>(null);
+  const tallerCsvInputRef = useRef<HTMLInputElement>(null);
   const [csvLoaded, setCsvLoaded] = useState(false);
-  const [csvLabel, setCsvLabel] = useState('Cargar Data General');
+  const [csvLabel, setCsvLabel] = useState('Data General');
+  const [tallerLoaded, setTallerLoaded] = useState(false);
+  const [tallerLabel, setTallerLabel] = useState('Data Taller');
   const [dateChip, setDateChip] = useState('');
   const [period, setPeriod] = useState('—');
 
@@ -29,23 +36,29 @@ export default function ConsoleView({
     setPeriod(formatted);
   }, []);
 
-  // Reflejar cuando el CSV se restauró desde Supabase
   useEffect(() => {
-    if (portalCSVName && !csvLoading) {
-      setCsvLoaded(true);
-      setCsvLabel(portalCSVName);
-    }
+    if (portalCSVName && !csvLoading) { setCsvLoaded(true); setCsvLabel(portalCSVName); }
   }, [portalCSVName, csvLoading]);
 
-  function handleCSV(input: HTMLInputElement) {
+  useEffect(() => {
+    if (tallerCSVName && !tallerCsvLoading) { setTallerLoaded(true); setTallerLabel(tallerCSVName); }
+  }, [tallerCSVName, tallerCsvLoading]);
+
+  function handleCSV(input: HTMLInputElement, isTaller: boolean) {
     const file = input.files?.[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = function(e) {
       const text = e.target!.result as string;
-      onCSVLoad(text, file.name);
-      setCsvLoaded(true);
-      setCsvLabel(file.name);
+      if (isTaller) {
+        onTallerCSVLoad(text, file.name);
+        setTallerLoaded(true);
+        setTallerLabel(file.name);
+      } else {
+        onCSVLoad(text, file.name);
+        setCsvLoaded(true);
+        setCsvLabel(file.name);
+      }
     };
     reader.readAsText(file, 'UTF-8');
     input.value = '';
@@ -69,24 +82,37 @@ export default function ConsoleView({
 
       <div className="ac-subtitle-bar">
         <span className="ac-subtitle">Seleccione el reporte que desea administrar</span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+
+          {/* Botón CSV General */}
           <button
             className="csv-chip"
             onClick={() => csvInputRef.current?.click()}
-            title="Cargar Data General (CSV)"
+            title="Cargar Data General — Sucursal y Vendedor"
             disabled={csvLoading}
           >
             <span className={`csv-dot${csvLoaded ? ' ok' : ''}`}></span>
             <i className="fas fa-upload"></i>
             <span>{csvLoading ? 'Cargando...' : csvLabel}</span>
           </button>
-          <input
-            type="file"
-            ref={csvInputRef}
-            className="csv-chip-input"
-            accept=".csv,.txt"
-            onChange={(e) => handleCSV(e.target as HTMLInputElement)}
-          />
+          <input type="file" ref={csvInputRef} className="csv-chip-input" accept=".csv,.txt"
+            onChange={(e) => handleCSV(e.target as HTMLInputElement, false)} />
+
+          {/* Botón CSV Taller */}
+          <button
+            className="csv-chip"
+            onClick={() => tallerCsvInputRef.current?.click()}
+            title="Cargar Data Taller"
+            disabled={tallerCsvLoading}
+            style={{ borderColor: tallerLoaded ? 'rgba(39,174,96,.5)' : undefined }}
+          >
+            <span className={`csv-dot${tallerLoaded ? ' ok' : ''}`}></span>
+            <i className="fas fa-upload"></i>
+            <span>{tallerCsvLoading ? 'Cargando...' : tallerLabel}</span>
+          </button>
+          <input type="file" ref={tallerCsvInputRef} className="csv-chip-input" accept=".csv,.txt"
+            onChange={(e) => handleCSV(e.target as HTMLInputElement, true)} />
+
           <span className="ac-date">{dateChip}</span>
         </div>
       </div>
@@ -215,8 +241,15 @@ export default function ConsoleView({
         <div className="ac-footer-card">
           <div style={{ fontSize: '18px' }}>📊</div>
           <div>
-            <div className="ac-footer-label">Fuente de datos</div>
-            <div className="ac-footer-val">{csvLoaded ? '✓ CSV cargado' : 'CSV upload'}</div>
+            <div className="ac-footer-label">Data General</div>
+            <div className="ac-footer-val">{csvLoaded ? '✓ Cargado' : 'Pendiente'}</div>
+          </div>
+        </div>
+        <div className="ac-footer-card">
+          <div style={{ fontSize: '18px' }}>🔧</div>
+          <div>
+            <div className="ac-footer-label">Data Taller</div>
+            <div className="ac-footer-val">{tallerLoaded ? '✓ Cargado' : 'Pendiente'}</div>
           </div>
         </div>
       </div>
