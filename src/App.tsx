@@ -1,18 +1,22 @@
 import { useState, useEffect } from 'react';
+import LoginView from './LoginView';
 import ConsoleView from './ConsoleView';
 import TallerView from './TallerView';
 import PendingView from './PendingView';
 import SucursalView from './SucursalView';
 import VendedorView from './VendedorView';
-import { saveCSV, loadCSV } from './lib/supabase';
+import { saveCSV, loadCSV, getSession, signOut, isAdmin, supabase } from './lib/supabase';
+import type { User } from '@supabase/supabase-js';
 
 type ViewName = 'console' | 'taller' | 'pending' | 'sucursal' | 'vendedor';
 
 export default function App() {
+  const [user, setUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [view, setView] = useState<ViewName>('console');
   const [pendingInfo, setPendingInfo] = useState({ nombre: '', num: 0 });
 
-  // CSV general (Sucursal + Vendedor)
+  // CSV general
   const [portalCSVText, setPortalCSVText] = useState<string | null>(null);
   const [portalCSVName, setPortalCSVName] = useState<string | null>(null);
   const [csvLoading, setCsvLoading] = useState(true);
@@ -22,8 +26,22 @@ export default function App() {
   const [tallerCSVName, setTallerCSVName] = useState<string | null>(null);
   const [tallerCsvLoading, setTallerCsvLoading] = useState(true);
 
-  // Restaurar ambos CSV desde Supabase al iniciar
+  // ── Verificar sesión al iniciar ──────────────────────────────
   useEffect(() => {
+    getSession().then(session => {
+      setUser(session?.user ?? null);
+      setAuthLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // ── Cargar CSVs desde Supabase cuando hay sesión ─────────────
+  useEffect(() => {
+    if (!user) return;
     Promise.all([
       loadCSV('portal_csv').then(saved => {
         if (saved?.text) { setPortalCSVText(saved.text); setPortalCSVName(saved.name); }
@@ -35,7 +53,7 @@ export default function App() {
       setCsvLoading(false);
       setTallerCsvLoading(false);
     });
-  }, []);
+  }, [user]);
 
   function goConsole() { setView('console'); window.scrollTo(0, 0); }
   function openTaller() { setView('taller'); window.scrollTo(0, 0); }
@@ -48,16 +66,41 @@ export default function App() {
   }
 
   async function handleCSVLoad(text: string, name: string) {
-    setPortalCSVText(text);
-    setPortalCSVName(name);
+    setPortalCSVText(text); setPortalCSVName(name);
     await saveCSV('portal_csv', text, name);
   }
 
   async function handleTallerCSVLoad(text: string, name: string) {
-    setTallerCSVText(text);
-    setTallerCSVName(name);
+    setTallerCSVText(text); setTallerCSVName(name);
     await saveCSV('taller_csv', text, name);
   }
+
+  async function handleLogout() {
+    await signOut();
+    setUser(null);
+    setView('console');
+  }
+
+  // ── Estados de carga y auth ──────────────────────────────────
+  if (authLoading) {
+    return (
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        height: '100vh', background: '#0d1117', color: '#8fa8cc', fontSize: '14px', gap: '10px'
+      }}>
+        <div style={{
+          width: '18px', height: '18px', border: '2px solid #F5C518',
+          borderTopColor: 'transparent', borderRadius: '50%',
+          animation: 'spin 0.8s linear infinite'
+        }} />
+        Verificando sesión...
+      </div>
+    );
+  }
+
+  if (!user) return <LoginView onLogin={() => {}} />;
+
+  const admin = isAdmin(user);
 
   return (
     <div>
@@ -74,6 +117,9 @@ export default function App() {
           tallerCSVName={tallerCSVName}
           onTallerCSVLoad={handleTallerCSVLoad}
           tallerCsvLoading={tallerCsvLoading}
+          isAdmin={admin}
+          userEmail={user.email ?? ''}
+          onLogout={handleLogout}
         />
       </div>
       <div style={{ display: view === 'taller' ? 'block' : 'none' }}>
@@ -82,6 +128,7 @@ export default function App() {
           active={view === 'taller'}
           csvText={tallerCSVText}
           csvName={tallerCSVName}
+          isAdmin={admin}
         />
       </div>
       <div style={{ display: view === 'pending' ? 'block' : 'none' }}>
@@ -93,6 +140,7 @@ export default function App() {
           csvText={portalCSVText}
           csvName={portalCSVName}
           active={view === 'sucursal'}
+          isAdmin={admin}
         />
       </div>
       <div style={{ display: view === 'vendedor' ? 'block' : 'none' }}>
@@ -101,6 +149,7 @@ export default function App() {
           csvText={portalCSVText}
           csvName={portalCSVName}
           active={view === 'vendedor'}
+          isAdmin={admin}
         />
       </div>
     </div>

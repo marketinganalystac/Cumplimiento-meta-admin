@@ -7,9 +7,10 @@ interface VendedorViewProps {
   csvText: string | null;
   csvName: string | null;
   active: boolean;
+  isAdmin: boolean;
 }
 
-export default function VendedorView({ onGoConsole, csvText, csvName, active }: VendedorViewProps) {
+export default function VendedorView({ onGoConsole, csvText, csvName, active, isAdmin }: VendedorViewProps) {
   const frameRef = useRef<HTMLIFrameElement>(null);
   const [loaded, setLoaded] = useState(false);
 
@@ -34,6 +35,7 @@ export default function VendedorView({ onGoConsole, csvText, csvName, active }: 
         if (state) {
           win.postMessage({ type: 'restoreState', state }, '*');
         }
+        win.postMessage({ type: 'setRole', isAdmin }, '*');
 
         // 2. Enviar CSV si hay uno cargado
         if (csvText) {

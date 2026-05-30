@@ -7,9 +7,10 @@ interface TallerViewProps {
   active: boolean;
   csvText?: string | null;
   csvName?: string | null;
+  isAdmin: boolean;
 }
 
-export default function TallerView({ onGoConsole, active, csvText, csvName }: TallerViewProps) {
+export default function TallerView({ onGoConsole, active, csvText, csvName, isAdmin }: TallerViewProps) {
   const frameRef = useRef<HTMLIFrameElement>(null);
   const [loaded, setLoaded] = useState(false);
 
@@ -30,7 +31,7 @@ export default function TallerView({ onGoConsole, active, csvText, csvName }: Ta
         if (!win) return;
         const state = await loadReportState('taller');
         if (state) win.postMessage({ type: 'restoreState', state }, '*');
-        // Si hay CSV guardado y el state no tiene dataLoaded, enviarlo
+        win.postMessage({ type: 'setRole', isAdmin }, '*');
         if (csvText) win.postMessage({ type: 'csvData', text: csvText, name: csvName }, '*');
         return;
       }

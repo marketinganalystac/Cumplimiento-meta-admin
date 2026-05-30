@@ -5,7 +5,30 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-/** Guarda o actualiza un CSV en Supabase por id */
+// ── Auth helpers ────────────────────────────────────────────────
+
+export async function signIn(email: string, password: string) {
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) throw error;
+  return data;
+}
+
+export async function signOut() {
+  await supabase.auth.signOut();
+}
+
+export async function getSession() {
+  const { data } = await supabase.auth.getSession();
+  return data.session;
+}
+
+/** Devuelve true si el usuario autenticado tiene rol admin */
+export function isAdmin(user: { user_metadata?: { role?: string } } | null): boolean {
+  return user?.user_metadata?.role === 'admin';
+}
+
+// ── CSV helpers ─────────────────────────────────────────────────
+
 export async function saveCSV(id: string, csvText: string, csvName: string) {
   const { error } = await supabase
     .from('csv_data')
@@ -13,7 +36,6 @@ export async function saveCSV(id: string, csvText: string, csvName: string) {
   if (error) console.error('[supabase] saveCSV:', error.message);
 }
 
-/** Lee un CSV guardado en Supabase por id */
 export async function loadCSV(id: string): Promise<{ text: string; name: string } | null> {
   const { data, error } = await supabase
     .from('csv_data')
@@ -24,7 +46,8 @@ export async function loadCSV(id: string): Promise<{ text: string; name: string 
   return data as { text: string; name: string };
 }
 
-/** Guarda el estado completo de un reporte (JSON) */
+// ── Report state helpers ────────────────────────────────────────
+
 export async function saveReportState(reportId: string, state: object) {
   const { error } = await supabase
     .from('report_state')
@@ -32,7 +55,6 @@ export async function saveReportState(reportId: string, state: object) {
   if (error) console.error(`[supabase] saveReportState(${reportId}):`, error.message);
 }
 
-/** Lee el estado de un reporte */
 export async function loadReportState(reportId: string): Promise<object | null> {
   const { data, error } = await supabase
     .from('report_state')

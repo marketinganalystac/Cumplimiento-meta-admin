@@ -12,12 +12,16 @@ interface ConsoleViewProps {
   tallerCSVName: string | null;
   onTallerCSVLoad: (text: string, name: string) => void;
   tallerCsvLoading?: boolean;
+  isAdmin: boolean;
+  userEmail: string;
+  onLogout: () => void;
 }
 
 export default function ConsoleView({
   onOpenTaller, onOpenSucursal, onOpenVendedor, onOpenPending,
   portalCSVText, portalCSVName, onCSVLoad, csvLoading,
   tallerCSVName, onTallerCSVLoad, tallerCsvLoading,
+  isAdmin, userEmail, onLogout,
 }: ConsoleViewProps) {
   const csvInputRef = useRef<HTMLInputElement>(null);
   const tallerCsvInputRef = useRef<HTMLInputElement>(null);
@@ -50,15 +54,8 @@ export default function ConsoleView({
     const reader = new FileReader();
     reader.onload = function(e) {
       const text = e.target!.result as string;
-      if (isTaller) {
-        onTallerCSVLoad(text, file.name);
-        setTallerLoaded(true);
-        setTallerLabel(file.name);
-      } else {
-        onCSVLoad(text, file.name);
-        setCsvLoaded(true);
-        setCsvLabel(file.name);
-      }
+      if (isTaller) { onTallerCSVLoad(text, file.name); setTallerLoaded(true); setTallerLabel(file.name); }
+      else { onCSVLoad(text, file.name); setCsvLoaded(true); setCsvLabel(file.name); }
     };
     reader.readAsText(file, 'UTF-8');
     input.value = '';
@@ -74,9 +71,31 @@ export default function ConsoleView({
           </div>
           <div className="ac-section">Centro de reportes · Cumplimiento de meta</div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#27ae60' }}></div>
-          <span style={{ color: '#8fa8cc', fontSize: '10.5px' }}>3 de 3 reportes activos</span>
+        {/* Info de sesión y logout */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{
+              width: '28px', height: '28px', borderRadius: '50%',
+              background: isAdmin ? 'rgba(245,197,24,.15)' : 'rgba(99,130,170,.15)',
+              border: `1px solid ${isAdmin ? 'rgba(245,197,24,.4)' : 'rgba(99,130,170,.3)'}`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '12px'
+            }}>
+              {isAdmin ? '👑' : '👤'}
+            </div>
+            <div>
+              <div style={{ fontSize: '10px', color: isAdmin ? '#F5C518' : '#8fa8cc', fontWeight: 600 }}>
+                {isAdmin ? 'Administrador' : 'Viewer'}
+              </div>
+              <div style={{ fontSize: '9px', color: '#5a7a9a' }}>{userEmail}</div>
+            </div>
+          </div>
+          <button onClick={onLogout} style={{
+            background: 'none', border: '1px solid rgba(99,130,170,.3)', borderRadius: '6px',
+            color: '#5a7a9a', fontSize: '10px', padding: '4px 8px', cursor: 'pointer',
+          }}>
+            Salir
+          </button>
         </div>
       </div>
 
@@ -84,34 +103,51 @@ export default function ConsoleView({
         <span className="ac-subtitle">Seleccione el reporte que desea administrar</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
 
-          {/* Botón CSV General */}
-          <button
-            className="csv-chip"
-            onClick={() => csvInputRef.current?.click()}
-            title="Cargar Data General — Sucursal y Vendedor"
-            disabled={csvLoading}
-          >
-            <span className={`csv-dot${csvLoaded ? ' ok' : ''}`}></span>
-            <i className="fas fa-upload"></i>
-            <span>{csvLoading ? 'Cargando...' : csvLabel}</span>
-          </button>
-          <input type="file" ref={csvInputRef} className="csv-chip-input" accept=".csv,.txt"
-            onChange={(e) => handleCSV(e.target as HTMLInputElement, false)} />
+          {/* Botones CSV — solo visibles para admin */}
+          {isAdmin && (
+            <>
+              <button className="csv-chip" onClick={() => csvInputRef.current?.click()}
+                title="Cargar Data General — Sucursal y Vendedor" disabled={csvLoading}>
+                <span className={`csv-dot${csvLoaded ? ' ok' : ''}`}></span>
+                <i className="fas fa-upload"></i>
+                <span>{csvLoading ? 'Cargando...' : csvLabel}</span>
+              </button>
+              <input type="file" ref={csvInputRef} className="csv-chip-input" accept=".csv,.txt"
+                onChange={(e) => handleCSV(e.target as HTMLInputElement, false)} />
 
-          {/* Botón CSV Taller */}
-          <button
-            className="csv-chip"
-            onClick={() => tallerCsvInputRef.current?.click()}
-            title="Cargar Data Taller"
-            disabled={tallerCsvLoading}
-            style={{ borderColor: tallerLoaded ? 'rgba(39,174,96,.5)' : undefined }}
-          >
-            <span className={`csv-dot${tallerLoaded ? ' ok' : ''}`}></span>
-            <i className="fas fa-upload"></i>
-            <span>{tallerCsvLoading ? 'Cargando...' : tallerLabel}</span>
-          </button>
-          <input type="file" ref={tallerCsvInputRef} className="csv-chip-input" accept=".csv,.txt"
-            onChange={(e) => handleCSV(e.target as HTMLInputElement, true)} />
+              <button className="csv-chip" onClick={() => tallerCsvInputRef.current?.click()}
+                title="Cargar Data Taller" disabled={tallerCsvLoading}
+                style={{ borderColor: tallerLoaded ? 'rgba(39,174,96,.5)' : undefined }}>
+                <span className={`csv-dot${tallerLoaded ? ' ok' : ''}`}></span>
+                <i className="fas fa-upload"></i>
+                <span>{tallerCsvLoading ? 'Cargando...' : tallerLabel}</span>
+              </button>
+              <input type="file" ref={tallerCsvInputRef} className="csv-chip-input" accept=".csv,.txt"
+                onChange={(e) => handleCSV(e.target as HTMLInputElement, true)} />
+            </>
+          )}
+
+          {/* Viewer: solo indicadores de estado sin botón */}
+          {!isAdmin && (
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <span style={{
+                fontSize: '10px', padding: '4px 10px', borderRadius: '20px',
+                background: csvLoaded ? 'rgba(39,174,96,.1)' : 'rgba(90,120,150,.1)',
+                border: `1px solid ${csvLoaded ? 'rgba(39,174,96,.3)' : 'rgba(90,120,150,.2)'}`,
+                color: csvLoaded ? '#27ae60' : '#5a7a9a',
+              }}>
+                {csvLoaded ? '✓ Data General' : '○ Sin data general'}
+              </span>
+              <span style={{
+                fontSize: '10px', padding: '4px 10px', borderRadius: '20px',
+                background: tallerLoaded ? 'rgba(39,174,96,.1)' : 'rgba(90,120,150,.1)',
+                border: `1px solid ${tallerLoaded ? 'rgba(39,174,96,.3)' : 'rgba(90,120,150,.2)'}`,
+                color: tallerLoaded ? '#27ae60' : '#5a7a9a',
+              }}>
+                {tallerLoaded ? '✓ Data Taller' : '○ Sin data taller'}
+              </span>
+            </div>
+          )}
 
           <span className="ac-date">{dateChip}</span>
         </div>
@@ -219,38 +255,23 @@ export default function ConsoleView({
       <div className="ac-footer">
         <div className="ac-footer-card">
           <div style={{ fontSize: '18px' }}>📁</div>
-          <div>
-            <div className="ac-footer-label">Reportes activos</div>
-            <div className="ac-footer-val">3 / 3</div>
-          </div>
+          <div><div className="ac-footer-label">Reportes activos</div><div className="ac-footer-val">3 / 3</div></div>
         </div>
         <div className="ac-footer-card">
           <div style={{ fontSize: '18px' }}>🗓️</div>
-          <div>
-            <div className="ac-footer-label">Período en curso</div>
-            <div className="ac-footer-val">{period}</div>
-          </div>
+          <div><div className="ac-footer-label">Período en curso</div><div className="ac-footer-val">{period}</div></div>
         </div>
         <div className="ac-footer-card">
           <div style={{ fontSize: '18px' }}>🏢</div>
-          <div>
-            <div className="ac-footer-label">Sucursales</div>
-            <div className="ac-footer-val">13 registradas</div>
-          </div>
+          <div><div className="ac-footer-label">Sucursales</div><div className="ac-footer-val">13 registradas</div></div>
         </div>
         <div className="ac-footer-card">
           <div style={{ fontSize: '18px' }}>📊</div>
-          <div>
-            <div className="ac-footer-label">Data General</div>
-            <div className="ac-footer-val">{csvLoaded ? '✓ Cargado' : 'Pendiente'}</div>
-          </div>
+          <div><div className="ac-footer-label">Data General</div><div className="ac-footer-val">{csvLoaded ? '✓ Cargado' : 'Pendiente'}</div></div>
         </div>
         <div className="ac-footer-card">
           <div style={{ fontSize: '18px' }}>🔧</div>
-          <div>
-            <div className="ac-footer-label">Data Taller</div>
-            <div className="ac-footer-val">{tallerLoaded ? '✓ Cargado' : 'Pendiente'}</div>
-          </div>
+          <div><div className="ac-footer-label">Data Taller</div><div className="ac-footer-val">{tallerLoaded ? '✓ Cargado' : 'Pendiente'}</div></div>
         </div>
       </div>
     </div>
