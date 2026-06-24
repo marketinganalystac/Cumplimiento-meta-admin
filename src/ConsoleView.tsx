@@ -48,16 +48,29 @@ export default function ConsoleView({
     if (tallerCSVName && !tallerCsvLoading) { setTallerLoaded(true); setTallerLabel(tallerCSVName); }
   }, [tallerCSVName, tallerCsvLoading]);
 
+  // Intenta UTF-8 estricto primero; si el archivo no es UTF-8 válido
+  // (típico de exportaciones desde Excel/sistemas en español que usan
+  // Windows-1252 / Latin-1), reintenta con esa codificación. Esto evita
+  // que tildes como "í" o "é" se corrompan en "�" (ej. "Vía Tocumen",
+  // "Chitré", "Vía Porras").
+  function decodeFileBuffer(buffer: ArrayBuffer): string {
+    try {
+      return new TextDecoder('utf-8', { fatal: true }).decode(buffer);
+    } catch {
+      return new TextDecoder('windows-1252').decode(buffer);
+    }
+  }
+
   function handleCSV(input: HTMLInputElement, isTaller: boolean) {
     const file = input.files?.[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = function(e) {
-      const text = e.target!.result as string;
+      const text = decodeFileBuffer(e.target!.result as ArrayBuffer);
       if (isTaller) { onTallerCSVLoad(text, file.name); setTallerLoaded(true); setTallerLabel(file.name); }
       else { onCSVLoad(text, file.name); setCsvLoaded(true); setCsvLabel(file.name); }
     };
-    reader.readAsText(file, 'UTF-8');
+    reader.readAsArrayBuffer(file);
     input.value = '';
   }
 
