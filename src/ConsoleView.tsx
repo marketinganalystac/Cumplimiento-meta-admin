@@ -45,14 +45,14 @@ export default function ConsoleView({
   }, []);
 
   useEffect(() => {
-    // Nota: si la data viene de una sesión ya persistida (no de una carga
-    // nueva en este momento), esta hora refleja cuándo la vista la detectó,
-    // no la hora real en que se cargó originalmente.
-    if (portalCSVName && !csvLoading) { setCsvLoaded(true); setCsvLabel(portalCSVName); setCsvLoadedAt((prev) => prev ?? horaActual()); }
+    // Si la data ya viene cargada (sesión persistida / otro admin la subió antes),
+    // no inventamos una hora — solo marcamos "cargado" sin timestamp falso.
+    // La hora real solo se conoce cuando la carga ocurre en vivo, vía handleCSV.
+    if (portalCSVName && !csvLoading) { setCsvLoaded(true); setCsvLabel(portalCSVName); }
   }, [portalCSVName, csvLoading]);
 
   useEffect(() => {
-    if (tallerCSVName && !tallerCsvLoading) { setTallerLoaded(true); setTallerLabel(tallerCSVName); setTallerLoadedAt((prev) => prev ?? horaActual()); }
+    if (tallerCSVName && !tallerCsvLoading) { setTallerLoaded(true); setTallerLabel(tallerCSVName); }
   }, [tallerCSVName, tallerCsvLoading]);
 
   // Intenta UTF-8 estricto primero; si el archivo no es UTF-8 válido
