@@ -27,8 +27,10 @@ export default function ConsoleView({
   const tallerCsvInputRef = useRef<HTMLInputElement>(null);
   const [csvLoaded, setCsvLoaded] = useState(false);
   const [csvLabel, setCsvLabel] = useState('Data General');
+  const [csvProgress, setCsvProgress] = useState<number | null>(null); // null = oculto, número = % visible
   const [tallerLoaded, setTallerLoaded] = useState(false);
   const [tallerLabel, setTallerLabel] = useState('Data Taller');
+  const [tallerProgress, setTallerProgress] = useState<number | null>(null);
   const [dateChip, setDateChip] = useState('');
   const [period, setPeriod] = useState('—');
 
@@ -64,12 +66,40 @@ export default function ConsoleView({
   function handleCSV(input: HTMLInputElement, isTaller: boolean) {
     const file = input.files?.[0];
     if (!file) return;
+    const setProgress = isTaller ? setTallerProgress : setCsvProgress;
+    setProgress(0);
     const reader = new FileReader();
+
+    reader.onprogress = (evt) => {
+      if (evt.lengthComputable) {
+        // Etapa 1 — lectura real del archivo: 0% → 60%
+        const pct = (evt.loaded / evt.total) * 60;
+        setProgress(pct);
+      }
+    };
+
     reader.onload = function(e) {
+      // Etapa 2 — el padre procesa el CSV (no nos reporta avance real),
+      // así que avanzamos suavemente hasta 95% mientras se espera la respuesta.
+      setProgress(70);
+      const ramp = setInterval(() => {
+        setProgress((p) => (p !== null && p < 95 ? p + 3 : p));
+      }, 120);
+
       const text = decodeFileBuffer(e.target!.result as ArrayBuffer);
       if (isTaller) { onTallerCSVLoad(text, file.name); setTallerLoaded(true); setTallerLabel(file.name); }
       else { onCSVLoad(text, file.name); setCsvLoaded(true); setCsvLabel(file.name); }
+
+      // Pequeño margen para que el usuario perciba el 100% antes de ocultar la barra.
+      setTimeout(() => {
+        clearInterval(ramp);
+        setProgress(100);
+        setTimeout(() => setProgress(null), 500);
+      }, 250);
     };
+
+    reader.onerror = () => { setProgress(null); };
+
     reader.readAsArrayBuffer(file);
     input.value = '';
   }
@@ -119,22 +149,46 @@ export default function ConsoleView({
           {/* Botones CSV — solo visibles para admin */}
           {isAdmin && (
             <>
-              <button className="csv-chip" onClick={() => csvInputRef.current?.click()}
-                title="Cargar Data General — Sucursal y Vendedor" disabled={csvLoading}>
-                <span className={`csv-dot${csvLoaded ? ' ok' : ''}`}></span>
-                <i className="fas fa-upload"></i>
-                <span>{csvLoading ? 'Cargando...' : csvLabel}</span>
-              </button>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                <button className="csv-chip" onClick={() => csvInputRef.current?.click()}
+                  title="Cargar Data General — Sucursal y Vendedor" disabled={csvLoading}>
+                  <span className={`csv-dot${csvLoaded ? ' ok' : ''}`}></span>
+                  <i className="fas fa-upload"></i>
+                  <span>{csvLoading ? 'Cargando...' : csvLabel}</span>
+                </button>
+                {csvProgress !== null && (
+                  <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,.12)', borderRadius: '3px', overflow: 'hidden' }}>
+                    <div style={{
+                      height: '100%', borderRadius: '3px',
+                      width: `${Math.min(100, csvProgress)}%`,
+                      background: 'linear-gradient(90deg,#F5C518,#27ae60)',
+                      transition: 'width .15s ease-out',
+                    }} />
+                  </div>
+                )}
+              </div>
               <input type="file" ref={csvInputRef} className="csv-chip-input" accept=".csv,.txt"
                 onChange={(e) => handleCSV(e.target as HTMLInputElement, false)} />
 
-              <button className="csv-chip" onClick={() => tallerCsvInputRef.current?.click()}
-                title="Cargar Data Taller" disabled={tallerCsvLoading}
-                style={{ borderColor: tallerLoaded ? 'rgba(39,174,96,.5)' : undefined }}>
-                <span className={`csv-dot${tallerLoaded ? ' ok' : ''}`}></span>
-                <i className="fas fa-upload"></i>
-                <span>{tallerCsvLoading ? 'Cargando...' : tallerLabel}</span>
-              </button>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                <button className="csv-chip" onClick={() => tallerCsvInputRef.current?.click()}
+                  title="Cargar Data Taller" disabled={tallerCsvLoading}
+                  style={{ borderColor: tallerLoaded ? 'rgba(39,174,96,.5)' : undefined }}>
+                  <span className={`csv-dot${tallerLoaded ? ' ok' : ''}`}></span>
+                  <i className="fas fa-upload"></i>
+                  <span>{tallerCsvLoading ? 'Cargando...' : tallerLabel}</span>
+                </button>
+                {tallerProgress !== null && (
+                  <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,.12)', borderRadius: '3px', overflow: 'hidden' }}>
+                    <div style={{
+                      height: '100%', borderRadius: '3px',
+                      width: `${Math.min(100, tallerProgress)}%`,
+                      background: 'linear-gradient(90deg,#F5C518,#27ae60)',
+                      transition: 'width .15s ease-out',
+                    }} />
+                  </div>
+                )}
+              </div>
               <input type="file" ref={tallerCsvInputRef} className="csv-chip-input" accept=".csv,.txt"
                 onChange={(e) => handleCSV(e.target as HTMLInputElement, true)} />
             </>
