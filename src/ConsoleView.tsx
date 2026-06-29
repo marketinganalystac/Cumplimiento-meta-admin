@@ -28,9 +28,11 @@ export default function ConsoleView({
   const [csvLoaded, setCsvLoaded] = useState(false);
   const [csvLabel, setCsvLabel] = useState('Data General');
   const [csvProgress, setCsvProgress] = useState<number | null>(null); // null = oculto, número = % visible
+  const [csvLoadedAt, setCsvLoadedAt] = useState<string | null>(null);
   const [tallerLoaded, setTallerLoaded] = useState(false);
   const [tallerLabel, setTallerLabel] = useState('Data Taller');
   const [tallerProgress, setTallerProgress] = useState<number | null>(null);
+  const [tallerLoadedAt, setTallerLoadedAt] = useState<string | null>(null);
   const [dateChip, setDateChip] = useState('');
   const [period, setPeriod] = useState('—');
 
@@ -43,11 +45,14 @@ export default function ConsoleView({
   }, []);
 
   useEffect(() => {
-    if (portalCSVName && !csvLoading) { setCsvLoaded(true); setCsvLabel(portalCSVName); }
+    // Nota: si la data viene de una sesión ya persistida (no de una carga
+    // nueva en este momento), esta hora refleja cuándo la vista la detectó,
+    // no la hora real en que se cargó originalmente.
+    if (portalCSVName && !csvLoading) { setCsvLoaded(true); setCsvLabel(portalCSVName); setCsvLoadedAt((prev) => prev ?? horaActual()); }
   }, [portalCSVName, csvLoading]);
 
   useEffect(() => {
-    if (tallerCSVName && !tallerCsvLoading) { setTallerLoaded(true); setTallerLabel(tallerCSVName); }
+    if (tallerCSVName && !tallerCsvLoading) { setTallerLoaded(true); setTallerLabel(tallerCSVName); setTallerLoadedAt((prev) => prev ?? horaActual()); }
   }, [tallerCSVName, tallerCsvLoading]);
 
   // Intenta UTF-8 estricto primero; si el archivo no es UTF-8 válido
@@ -61,6 +66,11 @@ export default function ConsoleView({
     } catch {
       return new TextDecoder('windows-1252').decode(buffer);
     }
+  }
+
+  // Hora local corta para mostrar "última carga": ej. "2:45 p.m."
+  function horaActual(): string {
+    return new Date().toLocaleTimeString('es-PA', { hour: 'numeric', minute: '2-digit' });
   }
 
   function handleCSV(input: HTMLInputElement, isTaller: boolean) {
@@ -87,8 +97,17 @@ export default function ConsoleView({
       }, 120);
 
       const text = decodeFileBuffer(e.target!.result as ArrayBuffer);
-      if (isTaller) { onTallerCSVLoad(text, file.name); setTallerLoaded(true); setTallerLabel(file.name); }
-      else { onCSVLoad(text, file.name); setCsvLoaded(true); setCsvLabel(file.name); }
+      if (isTaller) {
+        onTallerCSVLoad(text, file.name);
+        setTallerLoaded(true);
+        setTallerLabel(file.name);
+        setTallerLoadedAt(horaActual());
+      } else {
+        onCSVLoad(text, file.name);
+        setCsvLoaded(true);
+        setCsvLabel(file.name);
+        setCsvLoadedAt(horaActual());
+      }
 
       // Pequeño margen para que el usuario perciba el 100% antes de ocultar la barra.
       setTimeout(() => {
@@ -334,11 +353,23 @@ export default function ConsoleView({
         </div>
         <div className="ac-footer-card">
           <div style={{ fontSize: '18px' }}>📊</div>
-          <div><div className="ac-footer-label">Data General</div><div className="ac-footer-val">{csvLoaded ? '✓ Cargado' : 'Pendiente'}</div></div>
+          <div>
+            <div className="ac-footer-label">Data General</div>
+            <div className="ac-footer-val">{csvLoaded ? '✓ Cargado' : 'Pendiente'}</div>
+            {csvLoaded && csvLoadedAt && (
+              <div style={{ fontSize: '9px', color: '#8090a8', marginTop: '2px' }}>Última carga: {csvLoadedAt}</div>
+            )}
+          </div>
         </div>
         <div className="ac-footer-card">
           <div style={{ fontSize: '18px' }}>🔧</div>
-          <div><div className="ac-footer-label">Data Taller</div><div className="ac-footer-val">{tallerLoaded ? '✓ Cargado' : 'Pendiente'}</div></div>
+          <div>
+            <div className="ac-footer-label">Data Taller</div>
+            <div className="ac-footer-val">{tallerLoaded ? '✓ Cargado' : 'Pendiente'}</div>
+            {tallerLoaded && tallerLoadedAt && (
+              <div style={{ fontSize: '9px', color: '#8090a8', marginTop: '2px' }}>Última carga: {tallerLoadedAt}</div>
+            )}
+          </div>
         </div>
       </div>
     </div>
