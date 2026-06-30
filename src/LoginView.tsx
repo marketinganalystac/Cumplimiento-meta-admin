@@ -95,6 +95,7 @@ export default function LoginView({ onLogin }: LoginViewProps) {
       {/* ── Cuerpo ── */}
       <div style={{
         flex: 1,
+        position: 'relative',
         backgroundImage: `url(${BG_IMAGE})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
@@ -103,7 +104,14 @@ export default function LoginView({ onLogin }: LoginViewProps) {
         justifyContent: 'center',
         padding: '40px 16px',
       }}>
-        <div style={{ width: '100%', maxWidth: '420px' }}>
+        {/* Capa blur sobre el fondo */}
+        <div style={{
+          position: 'absolute', inset: 0,
+          backdropFilter: 'blur(6px)',
+          WebkitBackdropFilter: 'blur(6px)',
+          background: 'rgba(10, 20, 45, 0.45)',
+        }} />
+        <div style={{ width: '100%', maxWidth: '420px', position: 'relative' }}>
 
           {/* Card */}
           <div style={{
