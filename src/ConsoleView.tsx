@@ -7,9 +7,11 @@ interface ConsoleViewProps {
   onOpenPending: (nombre: string, num: number) => void;
   portalCSVText: string | null;
   portalCSVName: string | null;
+  portalCSVUpdatedAt: string | null;
   onCSVLoad: (text: string, name: string) => void;
   csvLoading?: boolean;
   tallerCSVName: string | null;
+  tallerCSVUpdatedAt: string | null;
   onTallerCSVLoad: (text: string, name: string) => void;
   tallerCsvLoading?: boolean;
   isAdmin: boolean;
@@ -19,22 +21,41 @@ interface ConsoleViewProps {
 
 export default function ConsoleView({
   onOpenTaller, onOpenSucursal, onOpenVendedor, onOpenPending,
-  portalCSVText, portalCSVName, onCSVLoad, csvLoading,
-  tallerCSVName, onTallerCSVLoad, tallerCsvLoading,
+  portalCSVText, portalCSVName, portalCSVUpdatedAt, onCSVLoad, csvLoading,
+  tallerCSVName, tallerCSVUpdatedAt, onTallerCSVLoad, tallerCsvLoading,
   isAdmin, userEmail, onLogout,
 }: ConsoleViewProps) {
   const csvInputRef = useRef<HTMLInputElement>(null);
   const tallerCsvInputRef = useRef<HTMLInputElement>(null);
   const [csvLoaded, setCsvLoaded] = useState(false);
-  const [csvLabel, setCsvLabel] = useState('Data General');
+  const CSV_LABEL = 'Data General.csv';
+  const TALLER_LABEL = 'Data Taller.csv';
   const [csvProgress, setCsvProgress] = useState<number | null>(null); // null = oculto, número = % visible
   const [csvLoadedAt, setCsvLoadedAt] = useState<string | null>(null);
   const [tallerLoaded, setTallerLoaded] = useState(false);
-  const [tallerLabel, setTallerLabel] = useState('Data Taller');
   const [tallerProgress, setTallerProgress] = useState<number | null>(null);
   const [tallerLoadedAt, setTallerLoadedAt] = useState<string | null>(null);
   const [dateChip, setDateChip] = useState('');
   const [period, setPeriod] = useState('—');
+
+  // ¿El timestamp ISO cae dentro del día calendario de hoy?
+  function esDeHoy(iso: string | null): boolean {
+    if (!iso) return false;
+    const d = new Date(iso);
+    const hoy = new Date();
+    return d.getFullYear() === hoy.getFullYear() &&
+      d.getMonth() === hoy.getMonth() &&
+      d.getDate() === hoy.getDate();
+  }
+
+  const csvLoadedToday = esDeHoy(csvLoadedAt);
+  const tallerLoadedToday = esDeHoy(tallerLoadedAt);
+
+  // Formatea el ISO guardado en Supabase a hora local corta, ej. "2:45 p.m."
+  function formatHora(iso: string | null): string | null {
+    if (!iso) return null;
+    return new Date(iso).toLocaleTimeString('es-PA', { hour: 'numeric', minute: '2-digit' });
+  }
 
   useEffect(() => {
     const hoy = new Date();
@@ -45,15 +66,14 @@ export default function ConsoleView({
   }, []);
 
   useEffect(() => {
-    // Si la data ya viene cargada (sesión persistida / otro admin la subió antes),
-    // no inventamos una hora — solo marcamos "cargado" sin timestamp falso.
-    // La hora real solo se conoce cuando la carga ocurre en vivo, vía handleCSV.
-    if (portalCSVName && !csvLoading) { setCsvLoaded(true); setCsvLabel(portalCSVName); }
-  }, [portalCSVName, csvLoading]);
+    // La hora ya no se pierde al refrescar: viene de Supabase (updated_at real
+    // de la última carga), tanto si la subió este admin como otro.
+    if (portalCSVName && !csvLoading) { setCsvLoaded(true); setCsvLoadedAt(portalCSVUpdatedAt); }
+  }, [portalCSVName, portalCSVUpdatedAt, csvLoading]);
 
   useEffect(() => {
-    if (tallerCSVName && !tallerCsvLoading) { setTallerLoaded(true); setTallerLabel(tallerCSVName); }
-  }, [tallerCSVName, tallerCsvLoading]);
+    if (tallerCSVName && !tallerCsvLoading) { setTallerLoaded(true); setTallerLoadedAt(tallerCSVUpdatedAt); }
+  }, [tallerCSVName, tallerCSVUpdatedAt, tallerCsvLoading]);
 
   // Intenta UTF-8 estricto primero; si el archivo no es UTF-8 válido
   // (típico de exportaciones desde Excel/sistemas en español que usan
@@ -66,11 +86,6 @@ export default function ConsoleView({
     } catch {
       return new TextDecoder('windows-1252').decode(buffer);
     }
-  }
-
-  // Hora local corta para mostrar "última carga": ej. "2:45 p.m."
-  function horaActual(): string {
-    return new Date().toLocaleTimeString('es-PA', { hour: 'numeric', minute: '2-digit' });
   }
 
   function handleCSV(input: HTMLInputElement, isTaller: boolean) {
@@ -100,13 +115,9 @@ export default function ConsoleView({
       if (isTaller) {
         onTallerCSVLoad(text, file.name);
         setTallerLoaded(true);
-        setTallerLabel(file.name);
-        setTallerLoadedAt(horaActual());
       } else {
         onCSVLoad(text, file.name);
         setCsvLoaded(true);
-        setCsvLabel(file.name);
-        setCsvLoadedAt(horaActual());
       }
 
       // Pequeño margen para que el usuario perciba el 100% antes de ocultar la barra.
@@ -173,7 +184,7 @@ export default function ConsoleView({
                   title="Cargar Data General — Sucursal y Vendedor" disabled={csvLoading}>
                   <span className={`csv-dot${csvLoaded ? ' ok' : ''}`}></span>
                   <i className="fas fa-upload"></i>
-                  <span>{csvLoading ? 'Cargando...' : csvLabel}</span>
+                  <span>{csvLoading ? 'Cargando...' : CSV_LABEL}</span>
                 </button>
                 {csvProgress !== null && (
                   <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,.12)', borderRadius: '3px', overflow: 'hidden' }}>
@@ -195,7 +206,7 @@ export default function ConsoleView({
                   style={{ borderColor: tallerLoaded ? 'rgba(39,174,96,.5)' : undefined }}>
                   <span className={`csv-dot${tallerLoaded ? ' ok' : ''}`}></span>
                   <i className="fas fa-upload"></i>
-                  <span>{tallerCsvLoading ? 'Cargando...' : tallerLabel}</span>
+                  <span>{tallerCsvLoading ? 'Cargando...' : TALLER_LABEL}</span>
                 </button>
                 {tallerProgress !== null && (
                   <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,.12)', borderRadius: '3px', overflow: 'hidden' }}>
@@ -218,17 +229,17 @@ export default function ConsoleView({
             <div style={{ display: 'flex', gap: '8px' }}>
               <span style={{
                 fontSize: '10px', padding: '4px 10px', borderRadius: '20px',
-                background: csvLoaded ? 'rgba(39,174,96,.1)' : 'rgba(90,120,150,.1)',
-                border: `1px solid ${csvLoaded ? 'rgba(39,174,96,.3)' : 'rgba(90,120,150,.2)'}`,
-                color: csvLoaded ? '#27ae60' : '#5a7a9a',
+                background: csvLoadedToday ? 'rgba(39,174,96,.1)' : 'rgba(90,120,150,.1)',
+                border: `1px solid ${csvLoadedToday ? 'rgba(39,174,96,.3)' : 'rgba(90,120,150,.2)'}`,
+                color: csvLoadedToday ? '#27ae60' : '#5a7a9a',
               }}>
                 {csvLoaded ? '✓ Data General' : '○ Sin data general'}
               </span>
               <span style={{
                 fontSize: '10px', padding: '4px 10px', borderRadius: '20px',
-                background: tallerLoaded ? 'rgba(39,174,96,.1)' : 'rgba(90,120,150,.1)',
-                border: `1px solid ${tallerLoaded ? 'rgba(39,174,96,.3)' : 'rgba(90,120,150,.2)'}`,
-                color: tallerLoaded ? '#27ae60' : '#5a7a9a',
+                background: tallerLoadedToday ? 'rgba(39,174,96,.1)' : 'rgba(90,120,150,.1)',
+                border: `1px solid ${tallerLoadedToday ? 'rgba(39,174,96,.3)' : 'rgba(90,120,150,.2)'}`,
+                color: tallerLoadedToday ? '#27ae60' : '#5a7a9a',
               }}>
                 {tallerLoaded ? '✓ Data Taller' : '○ Sin data taller'}
               </span>
@@ -261,8 +272,8 @@ export default function ConsoleView({
           <div className="ac-card-body">
             <p className="ac-desc">Vista consolidada por sucursal de todas las líneas de negocio. Proyección, ventas al corte y % de cumplimiento.</p>
             <div className="ac-stats">
-              <div className="ac-stat"><span className="ac-stat-dot dot-gray"></span>13 sucursales</div>
-              <div className="ac-stat"><span className="ac-stat-dot dot-gray"></span>Multi-línea</div>
+              <div className="ac-stat"><span className={`ac-stat-dot ${csvLoadedToday ? 'dot-grn' : 'dot-gray'}`}></span>13 sucursales</div>
+              <div className="ac-stat"><span className={`ac-stat-dot ${csvLoadedToday ? 'dot-grn' : 'dot-gray'}`}></span>Multi-línea</div>
             </div>
             <div className="ac-status">
               <span className="ac-status-badge st-active">● Activo</span>
@@ -292,8 +303,8 @@ export default function ConsoleView({
           <div className="ac-card-body">
             <p className="ac-desc">Seguimiento de ventas de talleres por sucursal. Proyección, ventas al corte, % cumplimiento y vehículos únicos.</p>
             <div className="ac-stats">
-              <div className="ac-stat"><span className="ac-stat-dot dot-grn"></span>13 sucursales</div>
-              <div className="ac-stat"><span className="ac-stat-dot dot-grn"></span>CSV · Proyección</div>
+              <div className="ac-stat"><span className={`ac-stat-dot ${tallerLoadedToday ? 'dot-grn' : 'dot-gray'}`}></span>13 sucursales</div>
+              <div className="ac-stat"><span className={`ac-stat-dot ${tallerLoadedToday ? 'dot-grn' : 'dot-gray'}`}></span>CSV · Proyección</div>
             </div>
             <div className="ac-status">
               <span className="ac-status-badge st-active">● Activo</span>
@@ -324,8 +335,8 @@ export default function ConsoleView({
           <div className="ac-card-body">
             <p className="ac-desc">Ranking individual de vendedores por sucursal: cuota asignada, ventas al corte, % cumplimiento y ticket promedio.</p>
             <div className="ac-stats">
-              <div className="ac-stat"><span className="ac-stat-dot dot-gray"></span>Por vendedor</div>
-              <div className="ac-stat"><span className="ac-stat-dot dot-gray"></span>Cuota · Ranking</div>
+              <div className="ac-stat"><span className={`ac-stat-dot ${csvLoadedToday ? 'dot-grn' : 'dot-gray'}`}></span>Por vendedor</div>
+              <div className="ac-stat"><span className={`ac-stat-dot ${csvLoadedToday ? 'dot-grn' : 'dot-gray'}`}></span>Cuota · Ranking</div>
             </div>
             <div className="ac-status">
               <span className="ac-status-badge st-active">● Activo</span>
@@ -357,7 +368,7 @@ export default function ConsoleView({
             <div className="ac-footer-label">Data General</div>
             <div className="ac-footer-val">{csvLoaded ? '✓ Cargado' : 'Pendiente'}</div>
             {csvLoaded && csvLoadedAt && (
-              <div style={{ fontSize: '9px', color: '#8090a8', marginTop: '2px' }}>Última carga: {csvLoadedAt}</div>
+              <div style={{ fontSize: '9px', color: '#8090a8', marginTop: '2px' }}>Última carga: {formatHora(csvLoadedAt)}</div>
             )}
           </div>
         </div>
@@ -367,7 +378,7 @@ export default function ConsoleView({
             <div className="ac-footer-label">Data Taller</div>
             <div className="ac-footer-val">{tallerLoaded ? '✓ Cargado' : 'Pendiente'}</div>
             {tallerLoaded && tallerLoadedAt && (
-              <div style={{ fontSize: '9px', color: '#8090a8', marginTop: '2px' }}>Última carga: {tallerLoadedAt}</div>
+              <div style={{ fontSize: '9px', color: '#8090a8', marginTop: '2px' }}>Última carga: {formatHora(tallerLoadedAt)}</div>
             )}
           </div>
         </div>
