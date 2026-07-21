@@ -29,21 +29,24 @@ export function isAdmin(user: { user_metadata?: { role?: string } } | null): boo
 
 // ── CSV helpers ─────────────────────────────────────────────────
 
-export async function saveCSV(id: string, csvText: string, csvName: string) {
+export async function saveCSV(id: string, csvText: string, csvName: string): Promise<string | null> {
+  const updatedAt = new Date().toISOString();
   const { error } = await supabase
     .from('csv_data')
-    .upsert({ id, text: csvText, name: csvName, updated_at: new Date().toISOString() });
-  if (error) console.error('[supabase] saveCSV:', error.message);
+    .upsert({ id, text: csvText, name: csvName, updated_at: updatedAt });
+  if (error) { console.error('[supabase] saveCSV:', error.message); return null; }
+  return updatedAt;
 }
 
-export async function loadCSV(id: string): Promise<{ text: string; name: string } | null> {
+export async function loadCSV(id: string): Promise<{ text: string; name: string; updatedAt: string } | null> {
   const { data, error } = await supabase
     .from('csv_data')
-    .select('text, name')
+    .select('text, name, updated_at')
     .eq('id', id)
     .single();
   if (error) { console.warn('[supabase] loadCSV:', error.message); return null; }
-  return data as { text: string; name: string };
+  const row = data as { text: string; name: string; updated_at: string };
+  return { text: row.text, name: row.name, updatedAt: row.updated_at };
 }
 
 // ── Report state helpers ────────────────────────────────────────
