@@ -19,13 +19,11 @@ export default function App() {
   // CSV general
   const [portalCSVText, setPortalCSVText] = useState<string | null>(null);
   const [portalCSVName, setPortalCSVName] = useState<string | null>(null);
-  const [portalCSVUpdatedAt, setPortalCSVUpdatedAt] = useState<string | null>(null);
   const [csvLoading, setCsvLoading] = useState(true);
 
   // CSV Taller
   const [tallerCSVText, setTallerCSVText] = useState<string | null>(null);
   const [tallerCSVName, setTallerCSVName] = useState<string | null>(null);
-  const [tallerCSVUpdatedAt, setTallerCSVUpdatedAt] = useState<string | null>(null);
   const [tallerCsvLoading, setTallerCsvLoading] = useState(true);
 
   // ── Verificar sesión al iniciar ──────────────────────────────
@@ -46,10 +44,10 @@ export default function App() {
     if (!user) return;
     Promise.all([
       loadCSV('portal_csv').then(saved => {
-        if (saved?.text) { setPortalCSVText(saved.text); setPortalCSVName(saved.name); setPortalCSVUpdatedAt(saved.updatedAt); }
+        if (saved?.text) { setPortalCSVText(saved.text); setPortalCSVName(saved.name); }
       }),
       loadCSV('taller_csv').then(saved => {
-        if (saved?.text) { setTallerCSVText(saved.text); setTallerCSVName(saved.name); setTallerCSVUpdatedAt(saved.updatedAt); }
+        if (saved?.text) { setTallerCSVText(saved.text); setTallerCSVName(saved.name); }
       }),
     ]).finally(() => {
       setCsvLoading(false);
@@ -69,14 +67,12 @@ export default function App() {
 
   async function handleCSVLoad(text: string, name: string) {
     setPortalCSVText(text); setPortalCSVName(name);
-    const updatedAt = await saveCSV('portal_csv', text, name);
-    setPortalCSVUpdatedAt(updatedAt);
+    await saveCSV('portal_csv', text, name);
   }
 
   async function handleTallerCSVLoad(text: string, name: string) {
     setTallerCSVText(text); setTallerCSVName(name);
-    const updatedAt = await saveCSV('taller_csv', text, name);
-    setTallerCSVUpdatedAt(updatedAt);
+    await saveCSV('taller_csv', text, name);
   }
 
   async function handleLogout() {
@@ -116,11 +112,9 @@ export default function App() {
           onOpenPending={openPending}
           portalCSVText={portalCSVText}
           portalCSVName={portalCSVName}
-          portalCSVUpdatedAt={portalCSVUpdatedAt}
           onCSVLoad={handleCSVLoad}
           csvLoading={csvLoading}
           tallerCSVName={tallerCSVName}
-          tallerCSVUpdatedAt={tallerCSVUpdatedAt}
           onTallerCSVLoad={handleTallerCSVLoad}
           tallerCsvLoading={tallerCsvLoading}
           isAdmin={admin}
