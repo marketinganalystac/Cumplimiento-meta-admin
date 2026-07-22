@@ -273,37 +273,6 @@ export default function ConsoleView({
           </div>
         </div>
 
-        {/* TALLER */}
-        <div className="ac-card">
-          <div className="ac-card-head">
-            <div className="ac-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="#F5C518" strokeWidth="2">
-                <path d="M14 6l-1-2H5v17h2v-7h5l1 2h7V6h-6z"/>
-              </svg>
-            </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                <div className="ac-card-title">Cumplimiento de meta<br />· Taller</div>
-                <div className="ac-order">2</div>
-              </div>
-              <div className="ac-card-scope">Auto Centro, S.A.</div>
-            </div>
-          </div>
-          <div className="ac-card-body">
-            <p className="ac-desc">Seguimiento de ventas de talleres por sucursal. Proyección, ventas al corte, % cumplimiento y vehículos únicos.</p>
-            <div className="ac-stats">
-              <div className="ac-stat"><span className="ac-stat-dot dot-grn"></span>13 sucursales</div>
-              <div className="ac-stat"><span className="ac-stat-dot dot-grn"></span>CSV · Proyección</div>
-            </div>
-            <div className="ac-status">
-              <span className="ac-status-badge st-active">● Activo</span>
-              <span style={{ fontSize: '10px', color: '#aab' }}>Reporte existente</span>
-            </div>
-            <div className="ac-divider"></div>
-            <button className="ac-btn" onClick={onOpenTaller}>Abrir reporte →</button>
-          </div>
-        </div>
-
         {/* VENDEDOR */}
         <div className="ac-card">
           <div className="ac-card-head">
@@ -316,7 +285,7 @@ export default function ConsoleView({
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                 <div className="ac-card-title">Cumplimiento de meta<br />· Vendedor</div>
-                <div className="ac-order">3</div>
+                <div className="ac-order">2</div>
               </div>
               <div className="ac-card-scope">Auto Centro, S.A.</div>
             </div>
@@ -333,6 +302,37 @@ export default function ConsoleView({
             </div>
             <div className="ac-divider"></div>
             <button className="ac-btn" onClick={onOpenVendedor}>Abrir reporte →</button>
+          </div>
+        </div>
+
+        {/* TALLER */}
+        <div className="ac-card">
+          <div className="ac-card-head">
+            <div className="ac-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#F5C518" strokeWidth="2">
+                <path d="M14 6l-1-2H5v17h2v-7h5l1 2h7V6h-6z"/>
+              </svg>
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                <div className="ac-card-title">Cumplimiento de meta<br />· Taller</div>
+                <div className="ac-order">3</div>
+              </div>
+              <div className="ac-card-scope">Auto Centro, S.A.</div>
+            </div>
+          </div>
+          <div className="ac-card-body">
+            <p className="ac-desc">Seguimiento de ventas de talleres por sucursal. Proyección, ventas al corte, % cumplimiento y vehículos únicos.</p>
+            <div className="ac-stats">
+              <div className="ac-stat"><span className="ac-stat-dot dot-grn"></span>13 sucursales</div>
+              <div className="ac-stat"><span className="ac-stat-dot dot-grn"></span>CSV · Proyección</div>
+            </div>
+            <div className="ac-status">
+              <span className="ac-status-badge st-active">● Activo</span>
+              <span style={{ fontSize: '10px', color: '#aab' }}>Reporte existente</span>
+            </div>
+            <div className="ac-divider"></div>
+            <button className="ac-btn" onClick={onOpenTaller}>Abrir reporte →</button>
           </div>
         </div>
 
