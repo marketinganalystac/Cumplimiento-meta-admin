@@ -351,7 +351,7 @@ export default function ConsoleView({
             </div>
             <div className="ac-status">
               <span className="ac-status-badge st-active">● Activo</span>
-              <span style={{ fontSize: '10px', color: '#aab' }}>Reporte existente</span>
+              <span style={{ fontSize: '10px', color: '#aab' }}>___________________</span>
             </div>
             <div className="ac-divider"></div>
             <button className="ac-btn" onClick={onOpenSucursal}>Abrir reporte →</button>
@@ -383,7 +383,7 @@ export default function ConsoleView({
             </div>
             <div className="ac-status">
               <span className="ac-status-badge st-active">● Activo</span>
-              <span style={{ fontSize: '10px', color: '#aab' }}>Reporte existente</span>
+              <span style={{ fontSize: '10px', color: '#aab' }}>___________________</span>
             </div>
             <div className="ac-divider"></div>
             <button className="ac-btn" onClick={onOpenVendedor}>Abrir reporte →</button>
@@ -415,7 +415,7 @@ export default function ConsoleView({
             </div>
             <div className="ac-status">
               <span className="ac-status-badge st-active">● Activo</span>
-              <span style={{ fontSize: '10px', color: '#aab' }}>Reporte existente</span>
+              <span style={{ fontSize: '10px', color: '#aab' }}>___________________</span>
             </div>
             <div className="ac-divider"></div>
             <button className="ac-btn" onClick={onOpenTaller}>Abrir reporte →</button>
