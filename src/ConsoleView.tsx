@@ -29,6 +29,68 @@ function TagIcon() {
   );
 }
 
+function TagIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+      style={{ width: '11px', height: '11px', marginRight: '4px', flexShrink: 0, color: '#8fa8cc' }}>
+      <path d="M20.59 13.41 11 3.83A2 2 0 0 0 9.59 3.24L3 3v6.59a2 2 0 0 0 .59 1.41l9.58 9.58a2 2 0 0 0 2.83 0l4.59-4.59a2 2 0 0 0 0-2.83Z" />
+      <circle cx="7.5" cy="7.5" r="1.5" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+function FooterIconWrap({ children }: { children: React.ReactNode }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="#F5C518" strokeWidth="2"
+      style={{ width: '18px', height: '18px', flexShrink: 0 }}>
+      {children}
+    </svg>
+  );
+}
+
+function FolderIcon() {
+  return (
+    <FooterIconWrap>
+      <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z" />
+    </FooterIconWrap>
+  );
+}
+
+function CalendarIcon() {
+  return (
+    <FooterIconWrap>
+      <rect x="3" y="4" width="18" height="17" rx="2" />
+      <path d="M16 2v4M8 2v4M3 10h18" />
+    </FooterIconWrap>
+  );
+}
+
+function BuildingIcon() {
+  return (
+    <FooterIconWrap>
+      <rect x="4" y="2" width="16" height="20" rx="1" />
+      <path d="M9 22v-4h6v4M8 6h.01M12 6h.01M16 6h.01M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01" />
+    </FooterIconWrap>
+  );
+}
+
+function ChartIcon() {
+  return (
+    <FooterIconWrap>
+      <path d="M3 3v18h18" />
+      <path d="M18 17V9M13 17V5M8 17v-4" />
+    </FooterIconWrap>
+  );
+}
+
+function WrenchIcon() {
+  return (
+    <FooterIconWrap>
+      <path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.8 2.8-2-2Z" />
+    </FooterIconWrap>
+  );
+}
+
 export default function ConsoleView({
   onOpenTaller, onOpenSucursal, onOpenVendedor, onOpenPending,
   portalCSVText, portalCSVName, portalCSVUpdatedAt, onCSVLoad, csvLoading,
@@ -373,19 +435,19 @@ export default function ConsoleView({
 
       <div className="ac-footer">
         <div className="ac-footer-card">
-          <div style={{ fontSize: '18px' }}>📁</div>
+          <FolderIcon />
           <div><div className="ac-footer-label">Reportes activos</div><div className="ac-footer-val">3 / 3</div></div>
         </div>
         <div className="ac-footer-card">
-          <div style={{ fontSize: '18px' }}>🗓️</div>
+          <CalendarIcon />
           <div><div className="ac-footer-label">Período en curso</div><div className="ac-footer-val">{period}</div></div>
         </div>
         <div className="ac-footer-card">
-          <div style={{ fontSize: '18px' }}>🏢</div>
+          <BuildingIcon />
           <div><div className="ac-footer-label">Sucursales</div><div className="ac-footer-val">13 registradas</div></div>
         </div>
         <div className="ac-footer-card">
-          <div style={{ fontSize: '18px' }}>📊</div>
+          <ChartIcon />
           <div>
             <div className="ac-footer-label">Data General</div>
             <div className="ac-footer-val">{csvLoaded ? '✓ Cargado' : 'Pendiente'}</div>
@@ -395,7 +457,7 @@ export default function ConsoleView({
           </div>
         </div>
         <div className="ac-footer-card">
-          <div style={{ fontSize: '18px' }}>🔧</div>
+          <WrenchIcon />
           <div>
             <div className="ac-footer-label">Data Taller</div>
             <div className="ac-footer-val">{tallerLoaded ? '✓ Cargado' : 'Pendiente'}</div>
