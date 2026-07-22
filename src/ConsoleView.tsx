@@ -46,13 +46,15 @@ export default function ConsoleView({
     setPeriod(formatted);
   }, []);
 
-  // Formatea un timestamp ISO (guardado en Supabase) a la misma hora corta
-  // que horaActual() produce para cargas en vivo, ej. "2:45 p.m.".
+  // Formatea un timestamp ISO (guardado en Supabase) a fecha + hora corta,
+  // ej. "22 jul, 2:45 p.m."
   function formatTimestamp(iso: string | null | undefined): string | null {
     if (!iso) return null;
     const d = new Date(iso);
     if (isNaN(d.getTime())) return null;
-    return d.toLocaleTimeString('es-PA', { hour: 'numeric', minute: '2-digit' });
+    const fecha = d.toLocaleDateString('es-PA', { day: 'numeric', month: 'short' });
+    const hora = d.toLocaleTimeString('es-PA', { hour: 'numeric', minute: '2-digit' });
+    return `${fecha}, ${hora}`;
   }
 
   useEffect(() => {
@@ -89,9 +91,9 @@ export default function ConsoleView({
     }
   }
 
-  // Hora local corta para mostrar "última carga": ej. "2:45 p.m."
+  // Fecha + hora local corta para mostrar "última carga": ej. "22 jul, 2:45 p.m."
   function horaActual(): string {
-    return new Date().toLocaleTimeString('es-PA', { hour: 'numeric', minute: '2-digit' });
+    return formatTimestamp(new Date().toISOString())!;
   }
 
   function handleCSV(input: HTMLInputElement, isTaller: boolean) {
