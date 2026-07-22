@@ -228,7 +228,7 @@ export default function ConsoleView({
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: '12px'
             }}>
-              {isAdmin ? '👑' : '👤'}
+              {isAdmin ? '🤯' : '👤'}
             </div>
             <div>
               <div style={{ fontSize: '10px', color: isAdmin ? '#F5C518' : '#8fa8cc', fontWeight: 600 }}>
@@ -395,7 +395,7 @@ export default function ConsoleView({
           <div className="ac-card-head">
             <div className="ac-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="#F5C518" strokeWidth="2">
-                <path d="M14 6l-1-2H5v17h2v-7h5l1 2h7V6h-6z"/>
+                <path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.8 2.8-2-2Z"/>
               </svg>
             </div>
             <div style={{ flex: 1 }}>
