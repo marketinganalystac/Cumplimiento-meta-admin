@@ -76,7 +76,7 @@ function ChartIcon() {
 function WrenchIcon() {
   return (
     <FooterIconWrap>
-      <path transform="translate(-3.8,-3.8) scale(1.0)" d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.8 2.8-2-2Z" />
+      <path transform="translate(-3.8,-3.8) scale(1.2)" d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.8 2.8-2-2Z" />
     </FooterIconWrap>
   );
 }
