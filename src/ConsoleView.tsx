@@ -395,7 +395,7 @@ export default function ConsoleView({
           <div className="ac-card-head">
             <div className="ac-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="#F5C518" strokeWidth="2">
-                  <path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.8 2.8-2-2Z"/>
+                  <path transform="translate(-3.8,-3.8) scale(1.35)" d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.8 2.8-2-2Z"/>
               </svg>
             </div>
             <div style={{ flex: 1 }}>
