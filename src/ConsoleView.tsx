@@ -19,6 +19,16 @@ interface ConsoleViewProps {
   onLogout: () => void;
 }
 
+function TagIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+      style={{ width: '11px', height: '11px', marginRight: '4px', flexShrink: 0, color: '#8fa8cc' }}>
+      <path d="M20.59 13.41 11 3.83A2 2 0 0 0 9.59 3.24L3 3v6.59a2 2 0 0 0 .59 1.41l9.58 9.58a2 2 0 0 0 2.83 0l4.59-4.59a2 2 0 0 0 0-2.83Z" />
+      <circle cx="7.5" cy="7.5" r="1.5" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
 export default function ConsoleView({
   onOpenTaller, onOpenSucursal, onOpenVendedor, onOpenPending,
   portalCSVText, portalCSVName, portalCSVUpdatedAt, onCSVLoad, csvLoading,
@@ -284,8 +294,8 @@ export default function ConsoleView({
           <div className="ac-card-body">
             <p className="ac-desc">Vista consolidada por sucursal de todas las líneas de negocio. Proyección, ventas al corte y % de cumplimiento.</p>
             <div className="ac-stats">
-              <div className="ac-stat"><span className="ac-stat-dot dot-gray"></span>13 sucursales</div>
-              <div className="ac-stat"><span className="ac-stat-dot dot-gray"></span>Multi-línea</div>
+              <div className="ac-stat"><TagIcon />13 sucursales</div>
+              <div className="ac-stat"><TagIcon />Multi-línea</div>
             </div>
             <div className="ac-status">
               <span className="ac-status-badge st-active">● Activo</span>
@@ -316,8 +326,8 @@ export default function ConsoleView({
           <div className="ac-card-body">
             <p className="ac-desc">Ranking individual de vendedores por sucursal: cuota asignada, ventas al corte, % cumplimiento y ticket promedio.</p>
             <div className="ac-stats">
-              <div className="ac-stat"><span className="ac-stat-dot dot-gray"></span>Por vendedor</div>
-              <div className="ac-stat"><span className="ac-stat-dot dot-gray"></span>Cuota · Ranking</div>
+              <div className="ac-stat"><TagIcon />Por vendedor</div>
+              <div className="ac-stat"><TagIcon />Cuota · Ranking</div>
             </div>
             <div className="ac-status">
               <span className="ac-status-badge st-active">● Activo</span>
@@ -347,8 +357,8 @@ export default function ConsoleView({
           <div className="ac-card-body">
             <p className="ac-desc">Seguimiento de ventas de talleres por sucursal. Proyección, ventas al corte, % cumplimiento y vehículos únicos.</p>
             <div className="ac-stats">
-              <div className="ac-stat"><span className="ac-stat-dot dot-grn"></span>13 sucursales</div>
-              <div className="ac-stat"><span className="ac-stat-dot dot-grn"></span>CSV · Proyección</div>
+              <div className="ac-stat"><TagIcon />13 sucursales</div>
+              <div className="ac-stat"><TagIcon />CSV · Proyección</div>
             </div>
             <div className="ac-status">
               <span className="ac-status-badge st-active">● Activo</span>
