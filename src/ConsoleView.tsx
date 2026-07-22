@@ -7,9 +7,11 @@ interface ConsoleViewProps {
   onOpenPending: (nombre: string, num: number) => void;
   portalCSVText: string | null;
   portalCSVName: string | null;
+  portalCSVUpdatedAt?: string | null;
   onCSVLoad: (text: string, name: string) => void;
   csvLoading?: boolean;
   tallerCSVName: string | null;
+  tallerCSVUpdatedAt?: string | null;
   onTallerCSVLoad: (text: string, name: string) => void;
   tallerCsvLoading?: boolean;
   isAdmin: boolean;
@@ -19,8 +21,8 @@ interface ConsoleViewProps {
 
 export default function ConsoleView({
   onOpenTaller, onOpenSucursal, onOpenVendedor, onOpenPending,
-  portalCSVText, portalCSVName, onCSVLoad, csvLoading,
-  tallerCSVName, onTallerCSVLoad, tallerCsvLoading,
+  portalCSVText, portalCSVName, portalCSVUpdatedAt, onCSVLoad, csvLoading,
+  tallerCSVName, tallerCSVUpdatedAt, onTallerCSVLoad, tallerCsvLoading,
   isAdmin, userEmail, onLogout,
 }: ConsoleViewProps) {
   const csvInputRef = useRef<HTMLInputElement>(null);
@@ -44,16 +46,35 @@ export default function ConsoleView({
     setPeriod(formatted);
   }, []);
 
-  useEffect(() => {
-    // Si la data ya viene cargada (sesión persistida / otro admin la subió antes),
-    // no inventamos una hora — solo marcamos "cargado" sin timestamp falso.
-    // La hora real solo se conoce cuando la carga ocurre en vivo, vía handleCSV.
-    if (portalCSVName && !csvLoading) { setCsvLoaded(true); setCsvLabel(portalCSVName); }
-  }, [portalCSVName, csvLoading]);
+  // Formatea un timestamp ISO (guardado en Supabase) a la misma hora corta
+  // que horaActual() produce para cargas en vivo, ej. "2:45 p.m.".
+  function formatTimestamp(iso: string | null | undefined): string | null {
+    if (!iso) return null;
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return null;
+    return d.toLocaleTimeString('es-PA', { hour: 'numeric', minute: '2-digit' });
+  }
 
   useEffect(() => {
-    if (tallerCSVName && !tallerCsvLoading) { setTallerLoaded(true); setTallerLabel(tallerCSVName); }
-  }, [tallerCSVName, tallerCsvLoading]);
+    // Si la data ya viene cargada (sesión persistida / otro admin la subió antes),
+    // usamos el updatedAt real guardado en Supabase en vez de inventar una hora.
+    // La hora "en vivo" (horaActual()) solo se usa cuando la carga ocurre ahora mismo, vía handleCSV.
+    if (portalCSVName && !csvLoading) {
+      setCsvLoaded(true);
+      setCsvLabel(portalCSVName);
+      const formatted = formatTimestamp(portalCSVUpdatedAt);
+      if (formatted) setCsvLoadedAt(formatted);
+    }
+  }, [portalCSVName, portalCSVUpdatedAt, csvLoading]);
+
+  useEffect(() => {
+    if (tallerCSVName && !tallerCsvLoading) {
+      setTallerLoaded(true);
+      setTallerLabel(tallerCSVName);
+      const formatted = formatTimestamp(tallerCSVUpdatedAt);
+      if (formatted) setTallerLoadedAt(formatted);
+    }
+  }, [tallerCSVName, tallerCSVUpdatedAt, tallerCsvLoading]);
 
   // Intenta UTF-8 estricto primero; si el archivo no es UTF-8 válido
   // (típico de exportaciones desde Excel/sistemas en español que usan
