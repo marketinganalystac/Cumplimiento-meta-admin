@@ -4,8 +4,8 @@
       "source": "/(.*)",
       "missing": [
         {
-          "type": "query",
-          "key": "gate"
+          "type": "header",
+          "key": "x-access-gate"
         }
       ],
       "destination": "https://cumplimientometa.admin-acsa.workers.dev/",
