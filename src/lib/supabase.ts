@@ -23,8 +23,8 @@ export async function getSession() {
 }
 
 /** Devuelve true si el usuario autenticado tiene rol admin */
-export function isAdmin(user: { user_metadata?: { role?: string } } | null): boolean {
-  return user?.user_metadata?.role === 'admin';
+export function isAdmin(user: { app_metadata?: { role?: string } } | null): boolean {
+  return user?.app_metadata?.role === 'admin';
 }
 
 // ── CSV helpers ─────────────────────────────────────────────────
