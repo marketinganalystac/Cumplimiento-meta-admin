@@ -1,17 +1,5 @@
 {
-  "redirects": [
-    {
-      "source": "/(.*)",
-      "missing": [
-        {
-          "type": "header",
-          "key": "x-access-gate"
-        }
-      ],
-      "destination": "https://cumplimientometa.admin-acsa.workers.dev/",
-      "permanent": false
-    }
-  ],
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
     {
       "source": "/(.*)",
