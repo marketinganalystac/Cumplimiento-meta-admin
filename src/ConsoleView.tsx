@@ -4,6 +4,7 @@ interface ConsoleViewProps {
   onOpenTaller: () => void;
   onOpenSucursal: () => void;
   onOpenVendedor: () => void;
+  onOpenCreditos: () => void;
   onOpenPending: (nombre: string, num: number) => void;
   portalCSVText: string | null;
   portalCSVName: string | null;
@@ -82,7 +83,7 @@ function WrenchIcon() {
 }
 
 export default function ConsoleView({
-  onOpenTaller, onOpenSucursal, onOpenVendedor, onOpenPending,
+  onOpenTaller, onOpenSucursal, onOpenVendedor, onOpenCreditos, onOpenPending,
   portalCSVText, portalCSVName, portalCSVUpdatedAt, onCSVLoad, csvLoading,
   tallerCSVName, tallerCSVUpdatedAt, onTallerCSVLoad, tallerCsvLoading,
   isAdmin, userEmail, onLogout,
@@ -418,6 +419,38 @@ export default function ConsoleView({
             </div>
             <div className="ac-divider"></div>
             <button className="ac-btn" onClick={onOpenTaller}>Abrir reporte →</button>
+          </div>
+        </div>
+
+        {/* CREDITOS */}
+        <div className="ac-card">
+          <div className="ac-card-head">
+            <div className="ac-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#F5C518" strokeWidth="2">
+                <rect x="2" y="5" width="20" height="14" rx="2"/>
+                <path d="M2 10h20"/>
+              </svg>
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                <div className="ac-card-title">Movimientos Clientes<br />· Créditos</div>
+                <div className="ac-order">4</div>
+              </div>
+              <div className="ac-card-scope">Auto Centro, S.A.</div>
+            </div>
+          </div>
+          <div className="ac-card-body">
+            <p className="ac-desc">Seguimiento de clientes a crédito: maestro de clientes, proyecciones y ventas por mercado, sucursal y vendedor.</p>
+            <div className="ac-stats">
+              <div className="ac-stat"><TagIcon />Maestro · Proyecciones</div>
+              <div className="ac-stat"><TagIcon />Por cliente</div>
+            </div>
+            <div className="ac-status">
+              <span className="ac-status-badge st-active">● Activo</span>
+              <span style={{ fontSize: '10px', color: '#aab' }}>___________________</span>
+            </div>
+            <div className="ac-divider"></div>
+            <button className="ac-btn" onClick={onOpenCreditos}>Abrir reporte →</button>
           </div>
         </div>
 

@@ -5,10 +5,11 @@ import TallerView from './TallerView';
 import PendingView from './PendingView';
 import SucursalView from './SucursalView';
 import VendedorView from './VendedorView';
+import CreditosView from './CreditosView';
 import { saveCSV, loadCSV, getSession, signOut, isAdmin, supabase } from './lib/supabase';
 import type { User } from '@supabase/supabase-js';
 
-type ViewName = 'console' | 'taller' | 'pending' | 'sucursal' | 'vendedor';
+type ViewName = 'console' | 'taller' | 'pending' | 'sucursal' | 'vendedor' | 'creditos';
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -61,6 +62,7 @@ export default function App() {
   function openTaller() { setView('taller'); window.scrollTo(0, 0); }
   function openSucursal() { setView('sucursal'); window.scrollTo(0, 0); }
   function openVendedor() { setView('vendedor'); window.scrollTo(0, 0); }
+  function openCreditos() { setView('creditos'); window.scrollTo(0, 0); }
   function openPending(nombre: string, num: number) {
     setPendingInfo({ nombre, num });
     setView('pending');
@@ -113,6 +115,7 @@ export default function App() {
           onOpenTaller={openTaller}
           onOpenSucursal={openSucursal}
           onOpenVendedor={openVendedor}
+          onOpenCreditos={openCreditos}
           onOpenPending={openPending}
           portalCSVText={portalCSVText}
           portalCSVName={portalCSVName}
@@ -155,6 +158,15 @@ export default function App() {
           csvText={portalCSVText}
           csvName={portalCSVName}
           active={view === 'vendedor'}
+          isAdmin={admin}
+        />
+      </div>
+      <div style={{ display: view === 'creditos' ? 'block' : 'none' }}>
+        <CreditosView
+          onGoConsole={goConsole}
+          csvText={portalCSVText}
+          csvName={portalCSVName}
+          active={view === 'creditos'}
           isAdmin={admin}
         />
       </div>
